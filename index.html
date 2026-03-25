@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI海龟汤 - 解谜推理游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a1628 0%, #1a2f4f 50%, #0d1b2a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(41, 128, 185, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(52, 152, 219, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .title-wrapper {
+            margin-bottom: 60px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 72px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow:
+                0 0 20px rgba(52, 152, 219, 0.8),
+                0 0 40px rgba(52, 152, 219, 0.5),
+                0 4px 8px rgba(0, 0, 0, 0.5);
+            margin-bottom: 16px;
+            letter-spacing: 8px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #81a1c1;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        .rules-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px 32px;
+            margin-bottom: 48px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rules-title {
+            font-size: 24px;
+            color: #88c0d0;
+            margin-bottom: 24px;
+            font-weight: 600;
+            position: relative;
+            display: inline-block;
+        }
+
+        .rules-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #88c0d0, transparent);
+        }
+
+        .rules-list {
+            text-align: left;
+            color: #d8dee9;
+            font-size: 16px;
+            line-height: 1.8;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .rules-list li {
+            margin-bottom: 16px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .rules-list li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: #5e81ac;
+            font-size: 18px;
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+            color: #ffffff;
+            border: none;
+            padding: 18px 64px;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            box-shadow:
+                0 4px 16px rgba(52, 152, 219, 0.4),
+                0 0 0 0 rgba(52, 152, 219, 0.7);
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out 0.6s both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .start-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 24px rgba(52, 152, 219, 0.6),
+                0 0 0 8px rgba(52, 152, 219, 0.2);
+        }
+
+        .start-button:active {
+            transform: translateY(0);
+        }
+
+        .start-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 48px;
+                letter-spacing: 4px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+                letter-spacing: 2px;
+            }
+
+            .rules-card {
+                padding: 32px 24px;
+            }
+
+            .rules-title {
+                font-size: 20px;
+            }
+
+            .rules-list {
+                font-size: 14px;
+            }
+
+            .start-button {
+                padding: 16px 48px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 36px;
+            }
+
+            .title-wrapper {
+                margin-bottom: 40px;
+            }
+
+            .rules-card {
+                padding: 24px 20px;
+                margin-bottom: 32px;
+            }
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(136, 192, 208, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="title-wrapper">
+            <h1>AI海龟汤</h1>
+            <div class="subtitle">Lateral Thinking Puzzle</div>
+        </div>
+
+        <div class="rules-card">
+            <div class="rules-title">游戏规则</div>
+            <ul class="rules-list">
+                <li>AI会给出一个神秘的事件描述</li>
+                <li>你可以通过提问来获取线索</li>
+                <li>AI只会回答"是"、"否"或"不相关"</li>
+                <li>运用逻辑推理，找出事件背后的真相</li>
+                <li>挑战你的侧向思维能力</li>
+            </ul>
+        </div>
+
+        <button class="start-button" onclick="startGame()">
+            <span>开始游戏</span>
+        </button>
+    </div>
+
+    <script>
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function startGame() {
+            alert('游戏即将开始...\n准备好挑战你的推理能力了吗？');
+        }
+
+        createParticles();
+    </script>
+</body>
+</html>
